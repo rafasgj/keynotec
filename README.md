@@ -14,3 +14,16 @@ compile the keynote to `template/out.pdf`.
 
 For now, use the [keynote.key](keynote.key) file as an example of everything
 that is already working.
+
+## Dependencies
+
+The following LaTeX packages are required:
+
+* beamer
+* inputenc
+* fontspec
+* enumitem
+* calc
+* datetime
+* babel
+* listings
