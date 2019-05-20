@@ -177,12 +177,10 @@ def parse_slide_code(data):
 
 
 def parse_code_block(data):
-    """code_block: anything except '```'."""
-    # TODO: I'm in a hurry to write the proper regex for the comment above.
+    """code_block: "```" STRING /.*?(?=```)/ "```"."""
     content, line = data
     if content[0:3] != "```":
         raise Exception("Expected '```' at line {}.".format(line))
-    # TODO: read language.
     lang, (content, line) = parse_STRING((content[3:], line))
     line += 1
     i = 1
