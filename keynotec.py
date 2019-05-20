@@ -91,6 +91,7 @@ def parse_slide(data):
         'twoimages': parse_slide_twoimages,
         'fourimages': parse_slide_fourimages,
         'code': parse_slide_code,
+        'items': parse_slide_items,
     }
     if type not in slide_parser:
         error = "Invalid slide type '{}' at line {}"
@@ -161,10 +162,7 @@ def parse_slide_fourimages(data):
 
 def parse_slide_code(data):
     """code: (title)? '```' code_block '```'."""
-    title = ""
-    content, line = data
-    if content[0:3] != "```":
-        title, data = parse_title(data)
+    title, data = parse_title(data)
     data = skip_space(data)
     (language, code), data = parse_code_block(data)
     keynote.plugins.append('listings/{}'.format(language))
@@ -173,7 +171,8 @@ def parse_slide_code(data):
     """
     template = """\\begin{{{language}}}\n{code}\n\\end{{{language}}}"""
     content = template.format(language=language, code=code)
-    return [frame.format(title=title, content=content), data]
+    return [frame.format(title=title if title is not None else "",
+                         content=content), data]
 
 
 def parse_code_block(data):
@@ -193,7 +192,74 @@ def parse_code_block(data):
     return [(lang, value), (content[i+3:], line)]
 
 
+def parse_slide_items(data):
+    """items: "items" title? itemlist."""
+    title, (content, line) = parse_title(data)
+    if title is None:
+        title = ""
+    else:
+        # skip title command line
+        data = content[1:], line + 1
+    items, data = parse_itemlist(data)
+    # TODO: process items.
+    last, items = items
+    start, end = "\\begin{itemize}", "\\end{itemize}"
+    result = start
+    stack = [end]
+    for ident, item in items:
+        if ident < last:
+            result += stack.pop()
+            last = ident
+        elif ident > last:
+            stack.append(end)
+            result += start
+            last = ident
+        result += "\\item {}".format(item)
+    while stack:
+        result += stack.pop()
+    data = skip_space(data)
+    frame = """\\begin{{frame}}\n\\frametitle{{{title}}}
+               {items}\n\\end{{frame}}\n"""
+    frame = frame.format(title=title, items=result)
+    return [frame, data]
+
+
 # -- general item parsig functions --
+
+def parse_itemlist(data):
+    """itemlist: singleitem (singleitem)+."""
+    content, line = data
+    items = []
+    min = 0
+    while True:
+        item, (content, line) = parse_singleitem((content, line))
+        if item is None:
+            break
+        if not items:
+            min = item[0]
+        else:
+            if item[0] < min:
+                e = "Items cannot have less identation than first item"
+                raise Exception((e + " at line {}").format(line))
+        items.append(item)
+    return [(min, items), (content, line)]
+
+
+def parse_singleitem(data):
+    """singleitem: level "*" STRING."""
+    content, line = data
+    i = 0
+    while i < len(content) and content[i] == " ":
+        i += 1
+    if i == len(content):
+        return [None, (None, line)]
+    if content[i] != '*':
+        raise Exception("Expected '*' for item list an line {}.".format(line))
+    data = skip_space((content[i+1:], line))
+    item, (content, line) = parse_STRING(data)
+    # skip next line marker.
+    return [(i, item), (content[1:], line + 1)]
+
 
 def parse_STRING(data):
     r"""STRING: ([^\\n]*)\\n."""
