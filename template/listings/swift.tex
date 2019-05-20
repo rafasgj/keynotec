@@ -1,0 +1,63 @@
+%
+% You must use package 'listings' for this environment.
+%
+
+\lstdefinelanguage{Swift}{
+  %keyword1&2&6
+  morekeywords = [1]{class, deinit, enum, extension, func, import,%
+                     init, let, protocol, static, struct, subscript,%
+                     typealias, var, public, private, open, internal,%
+                     },
+  %keyword3
+  morekeywords = [2]{break, case, continue, default, do, else, %
+                     fallthrough, for, if, in, return, switch, where,%
+                     while, guard, defer, repeat%
+                    },
+  %keyword4
+  morekeywords = [3]{as, dynamicType, is, new, super, self, Self, Type,%
+                     try, catch, throw, true, false, nil, rethrows,
+                     precondition%
+                    },
+  %keyword5
+  morekeywords = [4]{associativity, didSet, get, infix, inout, left,%
+                     mutating, none, nonmutating, operator, override,%
+                     postfix, precedence, prefix, right, set, unowned,%
+                     unowned(safe), unowned(unsafe), weak, willSet,%
+                     required, strong, final, lazy, indirect, optional,%
+                     print%
+                    },
+  morekeywords = [5]{iOS, macOS, \#available},%
+  keywordstyle = [1]\color{green},
+  keywordstyle = [2]\color{green},
+  keywordstyle = [3]\color{green},
+  keywordstyle = [4]\color{green},
+  keywordstyle = [5]\color{cyan},
+  sensitive = true,
+  morecomment = [l]{//},
+  morecomment = [s]{/*}{*/},
+  morecomment = [s]{/**}{*/},
+  commentstyle = \color{gray},
+  morestring = [b]",
+  morestring = [b]',
+  stringstyle = \color{purple}
+}
+
+\newcommand\swiftstyle{\lstset{
+    language=Swift,
+    basicstyle={\footnotesize\ttfamily},
+    stringstyle=\color{magenta!80!black},
+    showstringspaces=false
+}}
+
+\lstnewenvironment{swift}[1][]
+{
+\swiftstyle
+\lstset{#1}
+}
+{}
+
+\newcommand\swiftexternal[2][]{{
+\pythonstyle
+\lstinputlisting[#1]{#2}}}
+
+\newcommand\swiftinline[1]{{\pythonstyle\lstinline!#1!}}

@@ -14,12 +14,15 @@ class Keynote:
         """Initialize an empty keynote."""
         self.metadata = {}
         self.slides = []
+        self.plugins = []
+
+
+keynote = Keynote()
 
 
 def parse_keynote(data):
     """keynote: metadata slide+."""
     metadata, data = parse_metadata(data)
-    keynote = Keynote()
     keynote.metadata = metadata
     while True:
         slide, data = parse_slide(data)
@@ -49,9 +52,15 @@ def parse_metadata(data):
 
 
 def parse_metadata_key(data):
-    """'theme' | 'author' | 'institute' | 'date' | 'title' | 'subtitle'."""
+    """
+    Parse a metadata key.
+
+    A metadata key can be one of 'theme', 'author', 'institute',
+    'date', 'title', 'subtitle', 'language'.
+    """
     content, line = data
-    valid_keys = ['theme', 'author', 'institute', 'date', 'title', 'subtitle']
+    valid_keys = ['theme', 'author', 'institute', 'date',
+                  'title', 'subtitle', 'language']
     token, data = next_token(data)
     if token in valid_keys:
         return [token, data]
@@ -81,6 +90,7 @@ def parse_slide(data):
         'bigimage': parse_slide_bigimage,
         'twoimages': parse_slide_twoimages,
         'fourimages': parse_slide_fourimages,
+        'code': parse_slide_code,
     }
     if type not in slide_parser:
         error = "Invalid slide type '{}' at line {}"
@@ -108,9 +118,11 @@ def parse_slide_coverpage(data):
 
 def parse_slide_bigtitle(data):
     """Bigtitle only has a title."""
-    title, data = parse_title(data)
+    title, (content, line) = parse_title(data)
+    if title is None:
+        raise Exception("Expected '#' at line", line)
     fmt = '\\bigtitle{{{}}}'
-    return [fmt.format(title), data]
+    return [fmt.format(title), (content, line)]
 
 
 def parse_slide_citation(data):
@@ -147,6 +159,42 @@ def parse_slide_fourimages(data):
     return [fmt.format(*images), data]
 
 
+def parse_slide_code(data):
+    """code: (title)? '```' code_block '```'."""
+    title = ""
+    content, line = data
+    if content[0:3] != "```":
+        title, data = parse_title(data)
+    data = skip_space(data)
+    (language, code), data = parse_code_block(data)
+    keynote.plugins.append('listings/{}'.format(language))
+    frame = """\\begin{{frame}}[fragile]
+        \\frametitle{{{title}}}\n{content}\n\\end{{frame}}
+    """
+    template = """\\begin{{{language}}}\n{code}\n\\end{{{language}}}"""
+    content = template.format(language=language, code=code)
+    return [frame.format(title=title, content=content), data]
+
+
+def parse_code_block(data):
+    """code_block: anything except '```'."""
+    # TODO: I'm in a hurry to write the proper regex for the comment above.
+    content, line = data
+    if content[0:3] != "```":
+        raise Exception("Expected '```' at line {}.".format(line))
+    # TODO: read language.
+    lang, (content, line) = parse_STRING((content[3:], line))
+    line += 1
+    i = 1
+    while i < len(content)-3 and content[i:i+3] != '```':
+        if content[i] == '\n':
+            line += 1
+        i += 1
+    value = content[1:i]
+    # skip closing '```'.
+    return [(lang, value), (content[i+3:], line)]
+
+
 # -- general item parsig functions --
 
 def parse_STRING(data):
@@ -155,7 +203,7 @@ def parse_STRING(data):
     i = 0
     while i < len(content) and content[i] != '\n':
         i += 1
-    value = content[:i]
+    value = content[:i].strip()
     return [value, (content[i:], line)]
 
 
@@ -179,10 +227,10 @@ def parse_title(data):
     """title: # STRING."""
     content, line = skip_space(data)
     if content[0] != "#":
-        raise Exception("Expected '#' at line", line)
-    if len(content) > 1 and content[1] == "#":
-        raise Exception("Unexpected '##' at line", line)
-    return parse_STRING((content[1:], line))
+        return [None, data]
+    if len(content) > 1 and content[1] not in {' ', '\t'}:
+        raise Exception("Expected a whitespace after '#' at line", line)
+    return parse_STRING((content[2:], line))
 
 
 def parse_cite(data):
@@ -242,6 +290,8 @@ if __name__ == "__main__":
         with open('template/metadata.inc', 'rt') as meta:
             metabase.update(keynote.metadata)
             output.write(meta.read().format(**metabase))
+        for plugin in keynote.plugins:
+            output.write("\\input{{{plugin}}}".format(plugin=plugin))
         output.write('\\begin{document}')
         for type, data in keynote.slides:
             output.write(data)

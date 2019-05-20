@@ -4,6 +4,7 @@
 \usepackage{fontspec}
 \usepackage{enumitem}
 \usepackage{calc}
+\usepackage{listings}
 
 \usepackage{datetime}
 \newcommand\builddate{%
@@ -28,11 +29,6 @@
 }
 \newcommand{\presentationlanguage}[1]{%
     \usepackage[#1]{babel}%
-}
-
-\newcommand{\usecodingsamples}[1]{%
-    \usepackage{listings}%
-    \input{listings/#1}%
 }
 
 % Configura a apresentação para ser executada em tela cheia.

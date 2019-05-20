@@ -1,0 +1,24 @@
+%
+% You must use package 'listings' for this environment.
+%
+
+% Python style for highlighting
+\newcommand\pythonstyle{\lstset{
+    language=Python,
+    basicstyle={\footnotesize\ttfamily},
+    otherkeywords={self},             % Add keywords here
+    keywordstyle=\color{green},
+    emph={MyClass,__init__},          % Custom highlighting
+    emphstyle=\color{red},        % Custom highlighting style
+    stringstyle=\color{yellow},
+    showstringspaces=false            %
+}}
+
+% Python environment
+\lstnewenvironment{python}[1][]{\pythonstyle\lstset{#1}}{}
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{\pythonstyle\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\pythonstyle\lstinline!#1!}}
