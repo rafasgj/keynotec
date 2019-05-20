@@ -1,0 +1,166 @@
+\documentclass[aspectratio=169,14pt,usenames,dvipsnames]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{fontspec}
+\usepackage{enumitem}
+\usepackage{calc}
+
+\usepackage{datetime}
+\newcommand\builddate{%
+   \ifcase \month%
+        \or Janeiro%
+        \or Fevereiro%
+        \or Março%
+        \or Abril%
+        \or Maio%
+        \or Junho%
+        \or Julho%
+        \or Agosto%
+        \or Setembro%
+        \or Outubro%
+        \or Novembro%
+        \or Dezembro%
+    \fi\space\number\year%
+}
+
+\newcommand{\loadtheme}[1]{%
+    \input{themes/#1}%
+}
+\newcommand{\presentationlanguage}[1]{%
+    \usepackage[#1]{babel}%
+}
+
+\newcommand{\usecodingsamples}[1]{%
+    \usepackage{listings}%
+    \input{listings/#1}%
+}
+
+% Configura a apresentação para ser executada em tela cheia.
+\newcommand{\setfullscreen}{\hypersetup{pdfpagemode=FullScreen}}
+
+% Hide beamer navigation simbols
+\beamertemplatenavigationsymbolsempty
+
+%
+% Standard frames
+%
+
+% coverframe
+\newcommand{\coverframe}{%
+    \begin{frame} %
+        \titlepage %
+    \end{frame} %
+}
+
+% finalframe{email}
+\newcommand{\finalframe}[2][Thank you!]{%
+    \begin{frame}%
+        \begin{flushright}%
+            \huge \textbf{#1}%
+            \vfill%
+            \large \textbf{#2}%
+        \end{flushright}%
+    \end{frame}%
+}
+
+% bigtitle{title}
+\newcommand{\bigtitle}[1]{%
+    \begin{frame}%
+        \begin{center}%
+            \Huge {#1}%
+        \end{center}%
+    \end{frame}%
+}
+
+% citation{cite}{author}
+\renewcommand{\citation}[2]{%
+    \begin{frame}%
+        \begin{center}%
+            \vspace{1cm}
+            \large \textit{"#1"}\\%
+            \vspace{1cm}
+            \footnotesize {#2}%
+        \end{center}%
+    \end{frame}%
+}
+
+% bigimage{file}
+\newcommand{\bigimage}[2][1.0]{%
+    {%
+        %\usebackgroundtemplate{}%
+        \begin{frame}%
+            {%
+            \makebox[\textwidth][c]{%
+              \includegraphics[height=#1\paperheight, width=#1\paperwidth,%
+                               keepaspectratio]{#2}%
+              }%
+            }%
+        \end{frame}%
+    }%
+}
+
+% twoimages{file}{file}
+\newcommand{\twoimages}[2]{%
+    {%
+        \begin{frame}%
+            \begin{columns}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.99\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#1}%
+                      }%
+                    }%
+                \end{column}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.99\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#2}%
+                      }%
+                    }%
+                \end{column}%
+            \end{columns}%
+        \end{frame}%
+    }%
+}
+
+% fourimages{file}{file}
+\newcommand{\fourimages}[4]{%
+    {%
+        \begin{frame}%
+            \begin{columns}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#1}%
+                      }%
+                    }%
+                    \vspace{0.05\paperheight}
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#2}%
+                      }%
+                    }%
+                \end{column}%
+                \begin{column}{0.45\paperwidth}%
+                    {%
+                    \makebox[0.45\paperwidth][c]{%
+                      \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                       keepaspectratio]{#3}%
+                      }%
+                      \vspace{0.05\paperheight}
+                      {%
+                      \makebox[0.45\paperwidth][c]{%
+                        \includegraphics[height=0.45\paperheight, width=0.45\paperwidth,%
+                                         keepaspectratio]{#4}%
+                        }%
+                      }%
+                    }%
+                \end{column}%
+            \end{columns}%
+        \end{frame}%
+    }%
+}
