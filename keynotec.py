@@ -280,6 +280,7 @@ if __name__ == "__main__":
         'date': "",
         'title': "",
         'subtitle': "",
+        'language': "english",
         }
     with open(sys.argv[1], 'rt') as datafile:
         keynote = parse_keynote((datafile.read(), 1))
