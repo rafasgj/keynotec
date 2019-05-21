@@ -4,11 +4,8 @@ A simple DSL to create keynote presentations using LaTeX and Beamer.
 
 ## Usage
 
-At this state, it is barely usable, run it on its own directory,
-`python keynotec.py <filename.key>` and then execute `make -C template` to
-compile the keynote to `template/out.pdf`.
-
-> Yes, I will fix it soon, but I need this repository up sooner than I wanted.
+At this state, **KeynoteC** is usable, execute it with
+`python keynotec.py <filename.key>` to compile the keynote into a PDF file.
 
 ## Syntax
 
@@ -17,7 +14,8 @@ that is already working.
 
 ## Dependencies
 
-The following LaTeX packages are required:
+**XeLaTeX** is used to generate the PDF output file. Also, the following LaTeX
+packages are required:
 
 * beamer
 * inputenc
@@ -27,3 +25,15 @@ The following LaTeX packages are required:
 * datetime
 * babel
 * listings
+
+## Code Quality
+
+It works. It does what I need. I built everything in about 24h. It was much
+less than that in work hours.
+
+And the code shows it. Live with that. I do.
+
+To aid in its development, report any issue you have or enhanmente you want in
+the project's [Github repository](https://github.com/rafasgj/keynotec).
+
+Thank you.
