@@ -177,11 +177,8 @@ def parse_slide_fourimages(data):
 def parse_slide_code(data):
     """code: (title)? '```' code_block '```'."""
     title, data = optional_title(data)
-    print("BEFORE:", data[:20])
     data = skip_space(data)
-    print("AFTER:", data[:20])
     (language, code), data = parse_code_block(data)
-    print("CODE:", code[:20])
     keynote.plugins.append('listings/{}'.format(language))
     frame = """\\begin{{frame}}[fragile]
         \\frametitle{{{title}}}\n{content}\n\\end{{frame}}
@@ -290,7 +287,6 @@ def process_items(items):
 def parse_itemlist(data):
     """itemlist: singleitem (singleitem)+."""
     content, line = data
-    print("ITEMLIST:", content[:20])
     items = []
     min = 0
     while True:
@@ -319,7 +315,6 @@ def parse_singleitem(data):
         return [None, (content[level+1:], line+1)]
     if content[level] != '*':
         return [None, data]
-    print("LEVEL:", level)
     data = skip_space((content[level+1:], line))
     item, (content, line) = parse_STRING(data)
     return [(level, item), (content, line)]
@@ -338,7 +333,6 @@ def parse_STRING(data):
 def parse_image(data):
     r"""image: \[([^]+)\]."""
     content, line = data
-    print("IMG CONTENT:", content[:20])
     if content[0] != '[':
         return [None, data]
     i = 0
@@ -402,6 +396,13 @@ def next_token(data):
 
 if __name__ == "__main__":
     import sys
+    from subprocess import Popen, PIPE, STDOUT
+    import os
+    import os.path
+    if len(sys.argv) < 2:
+        print("usage: {} <filename>".format(sys.argv[0]))
+        sys.exit(1)
+    app_path = os.path.dirname(sys.argv[0])
     metabase = {
         'theme': "",
         'author': "",
@@ -411,13 +412,20 @@ if __name__ == "__main__":
         'subtitle': "",
         'language': "english",
         }
-    with open(sys.argv[1], 'rt') as datafile:
+    filename = sys.argv[1]
+    name, _ = os.path.splitext(filename)
+    texfile = '{}.tex'.format(name)
+    metafile = os.path.join(app_path, 'template/metadata.inc')
+    print("Processing {}...".format(filename), end='')
+    with open(filename, 'rt') as datafile:
         keynote = parse_keynote((datafile.read(), 1))
     if keynote is None:
         raise Exception("Failed to load keynote data.")
-    with open('template/out.tex', 'wt') as output:
+    print(" done.")
+    print("Preparing document...", end='')
+    with open(texfile, 'wt') as output:
         output.write("\\input{presentation}")
-        with open('template/metadata.inc', 'rt') as meta:
+        with open(metafile, 'rt') as meta:
             metabase.update(keynote.metadata)
             output.write(meta.read().format(**metabase))
         for plugin in keynote.plugins:
@@ -426,3 +434,23 @@ if __name__ == "__main__":
         for type, data in keynote.slides:
             output.write(data)
         output.write('\\end{document}')
+    print(" done.")
+    print("Creating slides...", end='')
+    cmd = ['xelatex', '-interaction', 'nonstopmode', texfile]
+    env = dict(os.environ)
+    env['TEXINPUTS'] = os.path.join(app_path, "template//:")
+    proc = Popen(cmd, stdout=PIPE, stderr=STDOUT,
+                 universal_newlines=True, env=env)
+    for stream in proc.communicate():
+        for line in stream.split('\n') if stream else []:
+            if line and line[0] == '!':
+                print("\n{}".format(line))
+    print(" done.")
+    print("Cleaning up...", end='')
+    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
+        fname = '{}.{}'.format(name, ext)
+        if os.access(fname, os.F_OK):
+            os.unlink(fname)
+    print("done.")
+    if os.access('{}.pdf'.format(name), os.F_OK):
+        print('{}.pdf'.format(name), "generated.")
