@@ -26,16 +26,38 @@
 
 % --- beamer templates
 
-\defbeamertemplate{footline}{centered page number}
-{%
-  \hspace*{\fill}%
-  \usebeamercolor[fg]{page number in head/foot}%
-  \usebeamerfont{page number in head/foot}%
-  \insertpagenumber%
-  \hspace*{\fill}\vskip5pt%
+\newcommand{\rightpagenumber}[0]{
+    \vspace{6pt}%
+    \hspace*{\fill}%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertpagenumber%
+    \hspace{4pt}%
+    \vspace{6pt}%
 }
-%\setbeamertemplate{footline}[centered page number]
-% headline for "top"
+\newcommand{\centerpagenumber}[0]{
+    \vspace{6pt}%
+    \hspace*{\fill}%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertpagenumber%
+    \hspace*{\fill}%
+    \vspace{6pt}%
+}
+\newcommand{\leftpagenumber}[0]{
+    \vspace{6pt}%
+    \hspace{4pt}%
+    \usebeamercolor[fg]{page number in head/foot}%
+    \usebeamerfont{page number in head/foot}%
+    \insertpagenumber%
+    \vspace{6pt}%
+}
+\defbeamertemplate{headline}{left page number}{\leftpagenumber}
+\defbeamertemplate{footline}{left page number}{\leftpagenumber}
+\defbeamertemplate{headline}{right page number}{\rightpagenumber}
+\defbeamertemplate{footline}{right page number}{\rightpagenumber}
+\defbeamertemplate{headline}{center page number}{\centerpagenumber}
+\defbeamertemplate{footline}{center page number}{\centerpagenumber}
 
 % --- commands
 

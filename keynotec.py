@@ -411,6 +411,7 @@ if __name__ == "__main__":
         'title': "",
         'subtitle': "",
         'language': "english",
+        'slidenumber': "none",
         }
     filename = sys.argv[1]
     name, _ = os.path.splitext(filename)
@@ -430,22 +431,18 @@ if __name__ == "__main__":
             output.write(meta.read().format(**metabase))
         for plugin in keynote.plugins:
             output.write("\\input{{{plugin}}}".format(plugin=plugin))
-        slidenumber = {
-            "none": "",
-            "center":
-                "\\setbeamertemplate{footline}[centered page number]",
-            "center bottom":
-                "\\setbeamertemplate{footline}[centered page number]",
-            "center top":
-                "\\setbeamertemplate{headline}[centered page number]",
-        }
+        # page number
         slideoption = keynote.metadata['slidenumber']
-        if slideoption not in slidenumber:
-            error = "Invalid slidenumber option.\nValid options: {}"
-            options = ", ".join(slidenumber.keys())
-            raise Exception(error.format(options))
-        else:
-            output.write(slidenumber.get(slideoption, "none"))
+        h, v = map(str.strip, slideoption.split(" ", 1))
+        if h != "none":
+            cfg = "\\setbeamertemplate{{{vertical}}}[{position} page number]"
+            if h not in ['center', 'left', 'right']:
+                raise Exception("Invalid slide number position: {}", h)
+            if v not in ['top', 'bottom']:
+                raise Exception("Invalid slide number position: {}", v)
+            vertical = "headline" if v == "top" else "footline"
+            output.write(cfg.format(vertical=vertical, position=h))
+        # print slides
         output.write('\\begin{document}')
         for type, data in keynote.slides:
             output.write(data)
