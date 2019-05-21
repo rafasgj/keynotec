@@ -92,11 +92,11 @@ def parse_slide(data):
         'fourimages': parse_slide_fourimages,
         'code': parse_slide_code,
         'items': parse_slide_items,
+        'items+image': parse_slide_itemimage,
     }
     if type not in slide_parser:
         error = "Invalid slide type '{}' at line {}"
         raise Exception(error.format(type, data[1]))
-    data = skip_space(data)
     slide, data = slide_parser[type](data)
     return [(type, slide), data]
 
@@ -108,7 +108,8 @@ def parse_slide_type(data):
         return [None, (None, line)]
     if content[0] != ":":
         raise Exception("Expected ':' at line", line)
-    return parse_STRING((content[1:], line))
+    type, data = parse_STRING((content[1:], line))
+    return [type, data]
 
 
 def parse_slide_coverpage(data):
@@ -137,6 +138,9 @@ def parse_slide_citation(data):
 def parse_slide_bigimage(data):
     """Bigtitle only has a title."""
     image, data = parse_image(data)
+    if image is None:
+        _, line = data
+        raise Exception("Expecting '[' to parse image at line {}".format(line))
     fmt = '\\bigimage{{{}}}'
     return [fmt.format(image), data]
 
@@ -144,8 +148,14 @@ def parse_slide_bigimage(data):
 def parse_slide_twoimages(data):
     """Bigtitle only has a title."""
     imageleft, data = parse_image(data)
+    if imageleft is None:
+        _, line = data
+        raise Exception("Expecting '[' to parse image at line {}".format(line))
     data = skip_space(data)
     imageright, data = parse_image(data)
+    if imageright is None:
+        _, line = data
+        raise Exception("Expecting '[' to parse image at line {}".format(line))
     fmt = '\\twoimages{{{}}}{{{}}}'
     return [fmt.format(imageleft, imageright), data]
 
@@ -155,6 +165,10 @@ def parse_slide_fourimages(data):
     images = [''] * 4
     for i in range(4):
         images[i], data = parse_image(data)
+        if images[i] is None:
+            _, line = data
+            error = "Expecting '[' to parse image at line {}"
+            raise Exception(error.format(line))
         data = skip_space(data)
     fmt = '\\fourimages{{{}}}{{{}}}{{{}}}{{{}}}'
     return [fmt.format(*images), data]
@@ -162,9 +176,12 @@ def parse_slide_fourimages(data):
 
 def parse_slide_code(data):
     """code: (title)? '```' code_block '```'."""
-    title, data = parse_title(data)
+    title, data = optional_title(data)
+    print("BEFORE:", data[:20])
     data = skip_space(data)
+    print("AFTER:", data[:20])
     (language, code), data = parse_code_block(data)
+    print("CODE:", code[:20])
     keynote.plugins.append('listings/{}'.format(language))
     frame = """\\begin{{frame}}[fragile]
         \\frametitle{{{title}}}\n{content}\n\\end{{frame}}
@@ -182,26 +199,76 @@ def parse_code_block(data):
         raise Exception("Expected '```' at line {}.".format(line))
     lang, (content, line) = parse_STRING((content[3:], line))
     line += 1
-    i = 1
+    i = 0
     while i < len(content)-3 and content[i:i+3] != '```':
         if content[i] == '\n':
             line += 1
         i += 1
-    value = content[1:i]
+    value = content[:i]
     # skip closing '```'.
     return [(lang, value), (content[i+3:], line)]
 
 
 def parse_slide_items(data):
     """items: "items" title? itemlist."""
-    title, (content, line) = parse_title(data)
-    if title is None:
-        title = ""
-    else:
-        # skip title command line
-        data = content[1:], line + 1
+    title, data = optional_title(data)
     items, data = parse_itemlist(data)
     # TODO: process items.
+    itemtext = process_items(items)
+    data = skip_space(data)
+    frame = """\\begin{{frame}}\n\\frametitle{{{title}}}
+               {items}\n\\end{{frame}}\n"""
+    frame = frame.format(title=title, items=itemtext)
+    return [frame, data]
+
+
+def parse_slide_itemimage(data):
+    """itemimage: "items+image" title? (image itemlist | itemlist image)."""
+    title, data = optional_title(data)
+    image, (content, line) = parse_image(data)
+    left = image is not None
+    if left:
+        i = 0
+        while content[i] != '\n':
+            i += 1
+        data = (content[i + 1:], line + 1)
+    else:
+        data = (content, line)
+    items, data = parse_itemlist(data)
+    if not left:
+        data = skip_space(data)
+        image, data = parse_image(data)
+    if image is None:
+        _, line = data
+        error = "Expected image for items+image slide at line {}"
+        raise Exception(error.format(line))
+    frame = """\\begin{{frame}}
+               \\frametitle{{{title}}}{c}\n\\end{{frame}}\n"""
+    columns = """\\begin{{columns}}{cols}\\end{{columns}}"""
+    column = """\\begin{{column}}{{0.45\paperwidth}}{content}\\end{{column}}"""
+    img = """
+        \\begin{{center}}
+        {{\\includegraphics[width=.45\\paperwidth, height=.75\\paperheight,
+        keepaspectratio]{{{i}}}}}
+        \\end{{center}}
+    """
+    cimg = column.format(content=img.format(i=image))
+    citems = column.format(content=process_items(items))
+    coltext = cimg + citems if left else citems + cimg
+    result = frame.format(title=title, c=columns.format(cols=coltext))
+    return [result, data]
+
+
+# -- general item parsig functions --
+
+def optional_title(data):
+    """Parse an optional title."""
+    title, data = parse_title(data)
+    return ["" if title is None else title, data]
+
+
+def process_items(items):
+    """Create a multi-level itemize list."""
     last, items = items
     start, end = "\\begin{itemize}", "\\end{itemize}"
     result = start
@@ -217,18 +284,13 @@ def parse_slide_items(data):
         result += "\\item {}".format(item)
     while stack:
         result += stack.pop()
-    data = skip_space(data)
-    frame = """\\begin{{frame}}\n\\frametitle{{{title}}}
-               {items}\n\\end{{frame}}\n"""
-    frame = frame.format(title=title, items=result)
-    return [frame, data]
+    return result
 
-
-# -- general item parsig functions --
 
 def parse_itemlist(data):
     """itemlist: singleitem (singleitem)+."""
     content, line = data
+    print("ITEMLIST:", content[:20])
     items = []
     min = 0
     while True:
@@ -248,17 +310,19 @@ def parse_itemlist(data):
 def parse_singleitem(data):
     """singleitem: level "*" STRING."""
     content, line = data
-    i = 0
-    while i < len(content) and content[i] == " ":
-        i += 1
-    if i == len(content):
+    level = 0
+    while level < len(content) and content[level] == " ":
+        level += 1
+    if level == len(content):
         return [None, (None, line)]
-    if content[i] != '*':
-        raise Exception("Expected '*' for item list an line {}.".format(line))
-    data = skip_space((content[i+1:], line))
+    if content[level] == '\n':
+        return [None, (content[level+1:], line+1)]
+    if content[level] != '*':
+        return [None, data]
+    print("LEVEL:", level)
+    data = skip_space((content[level+1:], line))
     item, (content, line) = parse_STRING(data)
-    # skip next line marker.
-    return [(i, item), (content[1:], line + 1)]
+    return [(level, item), (content, line)]
 
 
 def parse_STRING(data):
@@ -268,14 +332,15 @@ def parse_STRING(data):
     while i < len(content) and content[i] != '\n':
         i += 1
     value = content[:i].strip()
-    return [value, (content[i:], line)]
+    return [value, (content[i + 1:], line + 1)]
 
 
 def parse_image(data):
     r"""image: \[([^]+)\]."""
     content, line = data
+    print("IMG CONTENT:", content[:20])
     if content[0] != '[':
-        raise Exception("Expecting '[' to parse image at line {}".format(line))
+        return [None, data]
     i = 0
     while i < len(content) and content[i] != ']':
         i += 1
