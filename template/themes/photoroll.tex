@@ -1,0 +1,126 @@
+\setmainfont{GFS Neohellenic}
+
+\usepackage{tikz}
+%\usepackage{mdframed}
+
+% set fonts
+\setbeamerfont{title}{series=\bfseries, size=\huge}
+\setbeamerfont{author}{series=\bfseries, size=\large}
+\setbeamerfont{institute}{series=\bfseries, size=\small}
+\setbeamerfont{date}{size=\footnotesize}
+\setbeamerfont{frametitle}{series=\bfseries, size=\huge}
+\setbeamerfont{normal text}{series=\bfseries}
+
+% set text colors
+\setbeamercolor{frametitle}{fg=white, bg=orange}
+\setbeamercolor{structure}{fg=black}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{alerted text}{fg=black}
+\setbeamercolor{example text}{fg=black}
+
+\setlist[itemize]{
+    itemsep=0.25cm,
+    label={{\footnotesize$\bullet$}}
+}
+
+\setbeamertemplate{frametitle}[default][left]
+
+%%
+
+\renewcommand{\coverframe}{%
+    {%
+        \usebackgroundtemplate{%
+            \includegraphics[width=\paperwidth]{images/film_strip.png}%
+        }%
+        \setbeamercolor{title}{fg=white}
+        \setbeamercolor{subtitle}{fg=white}
+        \setbeamercolor{author}{fg=white}
+        \setbeamercolor{institute}{fg=white}
+        \setbeamercolor{date}{fg=white}
+        \begin{frame}%
+            \titlepage%
+        \end{frame}%
+    }%
+}
+
+\renewcommand{\finalframe}[2][Thank you!]{%
+    {%
+        \usebackgroundtemplate{%
+             \includegraphics[width=\paperwidth]{images/film_strip.png}%
+        }%
+        \begin{frame}%
+            \begin{flushright}%
+                \color{white}%
+                    \huge \textbf{#1}%
+                    \vfill%
+                    \large \textbf{#2}%
+            \end{flushright}%
+        \end{frame}%
+    }%
+}
+
+% bigtitle{title}
+\renewcommand{\bigtitle}[1]{%
+    {%
+        \usebackgroundtemplate{%
+             \includegraphics[width=\paperwidth]{images/film_strip.png}%
+        }%
+        \begin{frame}%
+            \begin{center}%
+                {\color{white}\Huge {#1}}%
+            \end{center}%
+        \end{frame}%
+    }%
+}
+
+\newcommand{\bighorizontal}[1]{%
+    {%
+        \usebackgroundtemplate{
+            \includegraphics[width=\paperwidth]{#1}%
+        }%
+        \begin{frame}%
+        \end{frame}%
+    }%
+}
+
+\newcommand{\bigvertical}[1]{%
+    {%
+        \usebackgroundtemplate{
+            \includegraphics[height=\paperheight]{#1}%
+        }%
+        \begin{frame}%
+        \end{frame}%
+    }%
+}
+
+\newcommand{\imagehorizontal}[2]{%
+    {%
+        \usebackgroundtemplate{
+            \vbox to \paperheight{%
+                \vfil\hbox to \paperwidth{%
+                    \hfil\includegraphics[width=\paperwidth]{#2}\hfil %
+                }%
+                \vfil%
+            }%
+        }%
+        \begin{frame}%
+            \frametitle{#1}%
+        \end{frame}%
+    }%
+}
+
+\newcommand{\imagevertical}[2]{%
+    {%
+        \usebackgroundtemplate{
+            \vspace{2cm} %
+            \vbox to \paperheight{%
+                \vfill\vfill\hbox to \paperwidth{%
+                    \hfil\includegraphics[height=0.86\paperheight]{#2}\hfil %
+                }%
+            }%
+        }%
+        \begin{frame}%
+            \frametitle{#1}%
+        \end{frame}%
+    }%
+}

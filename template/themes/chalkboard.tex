@@ -1,0 +1,39 @@
+%
+% This template requires texlive augie font.
+% On Fedora Linux, you must install package texlive-augie
+% You might find the font at The LaTeX Font Catalogue:
+%     http://www.tug.dk/FontCatalogue/
+%
+% As any of the templates with images, use \graphicspath{{templates/}}
+% in your TeX file. You probably want to use {.} algong in the path
+% list.
+%
+
+% set font to use
+\usepackage[T1]{fontenc}
+\renewcommand*\sfdefault{augie}
+\renewcommand*\familydefault{\sfdefault}
+
+% set text colors
+\setbeamercolor{frametitle}{fg=white}
+\setbeamercolor{structure}{fg=white}
+\setbeamercolor{normal text}{fg=white}
+\setbeamercolor{alerted text}{fg=white}
+\setbeamercolor{example text}{fg=white}
+\setbeamercolor{title}{fg=yellow}
+\setbeamercolor{institute}{fg=cyan!50!white}
+\setbeamercolor{date}{fg=magenta!50!white}
+
+% set fonts
+\setbeamerfont{title}{size=\Large}
+\setbeamerfont{author}{size=\normalsize}
+\setbeamerfont{institute}{size=\footnotesize}
+\setbeamerfont{date}{size=\footnotesize}
+\setbeamerfont{frametitle}{size=\Large}
+
+% set background gradient
+\setbeamertemplate{background canvas}
+    {\includegraphics[width=\paperwidth,height=\paperheight]{images/chalkboard.jpg}}
+
+% set frame title posision.
+\setbeamertemplate{frametitle}{\begin{center}\insertframetitle\end{center}}
