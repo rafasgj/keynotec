@@ -24,6 +24,21 @@
     \fi\space\number\year%
 }
 
+% --- beamer templates
+
+\defbeamertemplate{footline}{centered page number}
+{%
+  \hspace*{\fill}%
+  \usebeamercolor[fg]{page number in head/foot}%
+  \usebeamerfont{page number in head/foot}%
+  \insertpagenumber%
+  \hspace*{\fill}\vskip5pt%
+}
+%\setbeamertemplate{footline}[centered page number]
+% headline for "top"
+
+% --- commands
+
 \newcommand{\loadtheme}[1]{%
     \input{themes/#1}%
 }

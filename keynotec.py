@@ -60,7 +60,7 @@ def parse_metadata_key(data):
     """
     content, line = data
     valid_keys = ['theme', 'author', 'institute', 'date',
-                  'title', 'subtitle', 'language']
+                  'title', 'subtitle', 'language', 'slidenumber']
     token, data = next_token(data)
     if token in valid_keys:
         return [token, data]
@@ -430,12 +430,39 @@ if __name__ == "__main__":
             output.write(meta.read().format(**metabase))
         for plugin in keynote.plugins:
             output.write("\\input{{{plugin}}}".format(plugin=plugin))
+        slidenumber = {
+            "none": "",
+            "center":
+                "\\setbeamertemplate{footline}[centered page number]",
+            "center bottom":
+                "\\setbeamertemplate{footline}[centered page number]",
+            "center top":
+                "\\setbeamertemplate{headline}[centered page number]",
+        }
+        slideoption = keynote.metadata['slidenumber']
+        if slideoption not in slidenumber:
+            error = "Invalid slidenumber option.\nValid options: {}"
+            options = ", ".join(slidenumber.keys())
+            raise Exception(error.format(options))
+        else:
+            output.write(slidenumber.get(slideoption, "none"))
         output.write('\\begin{document}')
         for type, data in keynote.slides:
             output.write(data)
         output.write('\\end{document}')
     print(" done.")
     print("Creating slides...", end='')
+    cmd = ['xelatex', '-interaction', 'nonstopmode', texfile]
+    env = dict(os.environ)
+    env['TEXINPUTS'] = os.path.join(app_path, "template//:")
+    proc = Popen(cmd, stdout=PIPE, stderr=STDOUT,
+                 universal_newlines=True, env=env)
+    for stream in proc.communicate():
+        for line in stream.split('\n') if stream else []:
+            if line and line[0] == '!':
+                print("\n{}".format(line))
+    print(" done.")
+    print("Fixing references and effects...", end='')
     cmd = ['xelatex', '-interaction', 'nonstopmode', texfile]
     env = dict(os.environ)
     env['TEXINPUTS'] = os.path.join(app_path, "template//:")
