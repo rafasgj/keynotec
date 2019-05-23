@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """A recursive descendent parser for a keynote DSL."""
 
 from string import ascii_letters, digits, whitespace
@@ -78,7 +80,9 @@ def parse_metadata_value(data):
 
 
 def parse_slide(data):
-    """slide: ":" slide_type (slide_arguments)? (slide_content)?."""
+    """slide: transition? ":" slide_type (slide_content)?."""
+    data = skip_space(data)
+    transition, data = parse_transition(data)
     type, data = parse_slide_type(data)
     if type is None:
         return [None, data]
@@ -98,7 +102,58 @@ def parse_slide(data):
         error = "Invalid slide type '{}' at line {}"
         raise Exception(error.format(type, data[1]))
     slide, data = slide_parser[type](data)
+    if transition is not None:
+        transition_text = "{{{transition}[direction={direction}]}}"
+        template = "\\addtobeamertemplate{background canvas}"
+        slide_text = "{{{template}{transition}{{}}{slide}}}"
+        t, duration = transition
+        valid_transitions = {
+            "dissolve": ("\\transdissolve", 0),
+            "pushright": ("\\transcover", 0),
+            "pushleft": ("\\transcover", 180),
+            "covertop": ("\\transcover", 90),
+            "coverbottom": ("\\transcover", 270),
+        }
+        if t not in valid_transitions:
+            error = "Invalid transition {} near line {}."
+            raise Exception(error.format(t, line))
+        transition, direction = valid_transitions[t]
+        transition_text = transition_text.format(transition=transition,
+                                                 direction=direction,
+                                                 duration=duration)
+        slide = slide_text.format(template=template,
+                                  transition=transition_text,
+                                  slide=slide)
     return [(type, slide), data]
+
+
+def parse_transition(data):
+    """transition: ':' '(" transition_type (',' NUMBER)? ')'."""
+    content, line = data
+    if not content:
+        return [None, (None, line)]
+    if content[0] != ":":
+        raise Exception("Expected ':' at line {}".format(line))
+    content, line = skip_space((content[1:], line))
+    if content[0] != "(":
+        return [None, data]
+    i = 1
+    while content[i] not in whitespace and content[i] not in ",)":
+        i += 1
+    transition = content[1:i]
+    content, line = skip_space((content[i:], line))
+    if content[0] == ',':
+        content, line = skip_space((content[1:], line))
+    length = 0.5
+    if content[0] in digits:
+        i = 1
+        while content[i] in digits or content[i] == '.':
+            i += 1
+        length = float(content[0:i])
+        content, line = skip_space((content[i:], line))
+    if content[0] != ')':
+        raise Exception("Expected ')' at line {}.".format(line))
+    return [(transition, length), (content[1:], line)]
 
 
 def parse_slide_type(data):
@@ -107,7 +162,7 @@ def parse_slide_type(data):
     if not content:
         return [None, (None, line)]
     if content[0] != ":":
-        raise Exception("Expected ':' at line", line)
+        raise Exception("Expected ':' at line {}".format(line))
     type, data = parse_STRING((content[1:], line))
     return [type, data]
 
@@ -471,7 +526,7 @@ if __name__ == "__main__":
                 print("\n{}".format(line))
     print(" done.")
     print("Cleaning up...", end='')
-    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
+    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb']:
         fname = '{}.{}'.format(name, ext)
         if os.access(fname, os.F_OK):
             os.unlink(fname)
