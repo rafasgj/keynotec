@@ -526,7 +526,7 @@ if __name__ == "__main__":
                 print("\n{}".format(line))
     print(" done.")
     print("Cleaning up...", end='')
-    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb']:
+    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
         fname = '{}.{}'.format(name, ext)
         if os.access(fname, os.F_OK):
             os.unlink(fname)
