@@ -102,6 +102,7 @@ def parse_slide(data):
         error = "Invalid slide type '{}' at line {}"
         raise Exception(error.format(type, data[1]))
     slide, data = slide_parser[type](data)
+    _, line = data
     if transition is not None:
         transition_text = "{{{transition}[direction={direction}]}}"
         template = "\\addtobeamertemplate{background canvas}"
@@ -474,91 +475,3 @@ def next_token(data):
     while i < len(content) and content[i] in (letters | numbers):
         i += 1
     return content[:i].strip(), [content[i:], line]
-
-
-# -- main()
-
-if __name__ == "__main__":
-    import sys
-    from subprocess import Popen, PIPE, STDOUT
-    import os
-    import os.path
-    if len(sys.argv) < 2:
-        print("usage: {} <filename>".format(sys.argv[0]))
-        sys.exit(1)
-    app_path = os.path.dirname(sys.argv[0])
-    metabase = {
-        'theme': "",
-        'author': "",
-        'institute': "",
-        'date': "",
-        'title': "",
-        'subtitle': "",
-        'language': "english",
-        'slidenumber': "none",
-        }
-    filename = sys.argv[1]
-    name, _ = os.path.splitext(filename)
-    texfile = '{}.tex'.format(name)
-    metafile = os.path.join(app_path, 'template/metadata.inc')
-    print("Processing {}...".format(filename), end='')
-    with open(filename, 'rt') as datafile:
-        keynote = parse_keynote((datafile.read(), 1))
-    if keynote is None:
-        raise Exception("Failed to load keynote data.")
-    print(" done.")
-    print("Preparing document...", end='')
-    with open(texfile, 'wt') as output:
-        output.write("\\input{presentation}")
-        with open(metafile, 'rt') as meta:
-            metabase.update(keynote.metadata)
-            output.write(meta.read().format(**metabase))
-        for plugin in keynote.plugins:
-            output.write("\\input{{{plugin}}}".format(plugin=plugin))
-        # page number
-        slideoption = keynote.metadata['slidenumber']
-        h, v = map(str.strip, slideoption.split(" ", 1))
-        if h != "none":
-            cfg = "\\setbeamertemplate{{{vertical}}}[{position} page number]"
-            if h not in ['center', 'left', 'right']:
-                raise Exception("Invalid slide number position: {}", h)
-            if v not in ['top', 'bottom']:
-                raise Exception("Invalid slide number position: {}", v)
-            vertical = "headline" if v == "top" else "footline"
-            output.write(cfg.format(vertical=vertical, position=h))
-        # print slides
-        output.write('\\begin{document}')
-        for type, data in keynote.slides:
-            output.write(data)
-        output.write('\\end{document}')
-    print(" done.")
-    print("Creating slides...", end='')
-    cmd = ['xelatex', '-interaction', 'nonstopmode', texfile]
-    env = dict(os.environ)
-    env['TEXINPUTS'] = os.path.join(app_path, "template//:")
-    proc = Popen(cmd, stdout=PIPE, stderr=STDOUT,
-                 universal_newlines=True, env=env)
-    for stream in proc.communicate():
-        for line in stream.split('\n') if stream else []:
-            if line and line[0] == '!':
-                print("\n{}".format(line))
-    print(" done.")
-    print("Fixing references and effects...", end='')
-    cmd = ['xelatex', '-interaction', 'nonstopmode', texfile]
-    env = dict(os.environ)
-    env['TEXINPUTS'] = os.path.join(app_path, "template//:")
-    proc = Popen(cmd, stdout=PIPE, stderr=STDOUT,
-                 universal_newlines=True, env=env)
-    for stream in proc.communicate():
-        for line in stream.split('\n') if stream else []:
-            if line and line[0] == '!':
-                print("\n{}".format(line))
-    print(" done.")
-    print("Cleaning up...", end='')
-    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
-        fname = '{}.{}'.format(name, ext)
-        if os.access(fname, os.F_OK):
-            os.unlink(fname)
-    print("done.")
-    if os.access('{}.pdf'.format(name), os.F_OK):
-        print('{}.pdf'.format(name), "generated.")

@@ -1,0 +1,67 @@
+# This is not really right, this is a sketch for the real BNF.
+
+keynote: metadata slide+
+
+metadata: metadata_key value
+
+metadata_key: "theme" | "author" | "institute" | "date" | "title" | "subtitle"
+
+value: ":" STRING
+
+slide: transition? ":" slide_type
+
+transition: ":" "(" transition_type ("," NUMBER)? ")"
+
+transition_type: dissolve
+    | pushleft | pushright
+    | covertop | coverbottom
+
+silde_type: coverpage
+    | bigtitle
+    | citation
+    | bigimage
+    | twoimages
+    | fourimages
+    | code
+    | items
+    | itemimage
+
+coverpage: "coverpage"
+
+bigtitle: "bigtitle" title
+
+citation: "citation" title cite
+
+bigimage: "bigimage" image
+
+twoimages: "twoimages" image image
+
+fourimages: "fourimages" image image image image
+
+code: "code" title? code_block
+
+code_block: code_block: "```" prog_language /.*?(?=```)/ "```"
+
+prog_language: STRING
+
+items: "items" title? itemlist
+
+itemimage: "items+image" title? (image itemlist | itemlist image)
+
+itemlist: single_item (single_item)?
+
+single_item: item_level "*" FORMATTED_STRING
+
+item_level: "    "+
+
+title: "#" STRING
+
+cite: "--" STRING
+
+image: "[" [^\]]+ "]"
+
+STRING: [^\n]*
+
+FORMATTED_STRING: ([^\n]|\*[^*]\*|/[^/]/|\_[^_]\_)*
+
+NUMBER: [0123456789]+(\.[0123456789]*)?
