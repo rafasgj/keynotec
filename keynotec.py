@@ -371,7 +371,7 @@ def parse_singleitem(data):
     if content[level] != '*':
         return [None, data]
     data = skip_space((content[level+1:], line))
-    item, (content, line) = parse_STRING(data)
+    item, (content, line) = parse_FORMATTED_STRING(data)
     return [(level, item), (content, line)]
 
 
@@ -383,6 +383,37 @@ def parse_STRING(data):
         i += 1
     value = content[:i].strip()
     return [value, (content[i + 1:], line + 1)]
+
+
+def parse_FORMATTED_STRING(data):
+    r"""FORMATTED_STRING: ([^\\n]|\*[^*]\*|/[^/]/)*\\n."""
+    value, data = parse_STRING(data)
+    i = 0
+    bold, italic = False, False
+    while i < len(value):
+        if value[i] == "\\":
+            if value[i+1] == "*":
+                value = value[:i] + value[i+1:]
+            else:
+                i += 1
+        elif value[i] == "*":
+            if bold:
+                value = value[:i] + "}" + value[i+1:]
+                bold = False
+            else:
+                value = value[:i] + "\\textbf{" + value[i+1:]
+                bold = True
+                i += 8
+        elif value[i] == "_":
+            if italic:
+                value = value[:i] + "}" + value[i+1:]
+                italic = False
+            else:
+                value = value[:i] + "\\textit{" + value[i+1:]
+                italic = True
+                i += 8
+        i += 1
+    return [value, data]
 
 
 def parse_image(data):
@@ -408,7 +439,7 @@ def parse_title(data):
         return [None, data]
     if len(content) > 1 and content[1] not in {' ', '\t'}:
         raise Exception("Expected a whitespace after '#' at line", line)
-    return parse_STRING((content[2:], line))
+    return parse_FORMATTED_STRING((content[2:], line))
 
 
 def parse_cite(data):
@@ -418,7 +449,7 @@ def parse_cite(data):
         raise Exception("Expected citation author at line {}.", line)
     if content[0] != "-" and content[1] != '-':
         raise Exception("Expected '--' at line", line)
-    return parse_STRING((content[2:], line))
+    return parse_FORMATTED_STRING((content[2:], line))
 
 
 # -- general parsing functions --
@@ -526,7 +557,8 @@ if __name__ == "__main__":
                 print("\n{}".format(line))
     print(" done.")
     print("Cleaning up...", end='')
-    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
+    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb']:
+    # for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
         fname = '{}.{}'.format(name, ext)
         if os.access(fname, os.F_OK):
             os.unlink(fname)
