@@ -387,31 +387,29 @@ def parse_STRING(data):
 
 def parse_FORMATTED_STRING(data):
     r"""FORMATTED_STRING: ([^\\n]|\*[^*]\*|/[^/]/)*\\n."""
+    formatters = {
+        '*': ("\\textbf{", False),
+        '/': ('\\textit{', False),
+        '_': ('\\underline{', False),
+    }
     value, data = parse_STRING(data)
     i = 0
-    bold, italic = False, False
     while i < len(value):
         if value[i] == "\\":
             if value[i+1] == "*":
                 value = value[:i] + value[i+1:]
             else:
                 i += 1
-        elif value[i] == "*":
-            if bold:
-                value = value[:i] + "}" + value[i+1:]
-                bold = False
-            else:
-                value = value[:i] + "\\textbf{" + value[i+1:]
-                bold = True
-                i += 8
-        elif value[i] == "_":
-            if italic:
-                value = value[:i] + "}" + value[i+1:]
-                italic = False
-            else:
-                value = value[:i] + "\\textit{" + value[i+1:]
-                italic = True
-                i += 8
+        else:
+            if value[i] in formatters:
+                key = value[i]
+                text, status = formatters[key]
+                if status:
+                    value = value[:i] + "}" + value[i+1:]
+                else:
+                    value = value[:i] + text + value[i+1:]
+                    i += len(text)
+                formatters[key] = (text, not status)
         i += 1
     return [value, data]
 
@@ -557,8 +555,7 @@ if __name__ == "__main__":
                 print("\n{}".format(line))
     print(" done.")
     print("Cleaning up...", end='')
-    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb']:
-    # for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
+    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
         fname = '{}.{}'.format(name, ext)
         if os.access(fname, os.F_OK):
             os.unlink(fname)
