@@ -26,7 +26,7 @@ setup(
     long_description_content_type='text/markdown',
     license="GPLv3",
     keywords="DSL keynote Latex Beamer slides",
-    url="https:/github.com/rafasgj/keynotec",
+    url="https://github.com/rafasgj/keynotec",
     entry_points={
         'console_scripts': ['keynotec = keynotec:run']
     },
