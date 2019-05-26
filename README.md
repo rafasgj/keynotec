@@ -4,9 +4,11 @@ A simple DSL to create keynote presentations using LaTeX and Beamer.
 
 ## Usage
 
-At this state, **KeynoteC** is usable as a Python executable module. Run
-it with `python -m keynotec <filename.key>` to compile the keynote file
-into a PDF presentation.
+At this state, **KeynoteC** is usable as a Python executable module, or as
+an application. Install it with `python setup.py install` (you might need
+superuser priviledges to install in system wide), and execute the module as
+`python -m keynotec <filename>`, or the application `keynotec <filename>`, to
+compile the keynote file into a PDF presentation.
 
 ## Syntax
 

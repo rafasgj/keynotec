@@ -1,5 +1,5 @@
 """Runs KeynoteC."""
 
-import keynotec
-
-keynotec.run()
+if __name__ == "__main__":
+    import keynotec
+    keynotec.run()
