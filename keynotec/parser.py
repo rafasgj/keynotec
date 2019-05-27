@@ -397,7 +397,7 @@ def parse_FORMATTED_STRING(data):
     i = 0
     while i < len(value):
         if value[i] == "\\":
-            if value[i+1] == "*":
+            if value[i+1] in ['*', '/', '_', '\\']:
                 value = value[:i] + value[i+1:]
             else:
                 i += 1
@@ -437,7 +437,8 @@ def parse_title(data):
     if content[0] != "#":
         return [None, data]
     if len(content) > 1 and content[1] not in {' ', '\t'}:
-        raise Exception("Expected a whitespace after '#' at line", line)
+        error = "Expected a whitespace after '#' at line {}"
+        raise Exception(error.format(line))
     return parse_FORMATTED_STRING((content[2:], line))
 
 

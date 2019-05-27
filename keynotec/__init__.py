@@ -37,7 +37,7 @@ def run():
         'title': "",
         'subtitle': "",
         'language': "english",
-        'slidenumber': "none",
+        'slidenumber': "none none",
         }
 
     filename = sys.argv[1]
@@ -58,12 +58,13 @@ def run():
         output.write("\\input{presentation}")
         with open(metafile, 'rt') as meta:
             metabase.update(keynote.metadata)
+            keynote.metadata = metabase
             output.write(meta.read().format(**metabase))
         for plugin in keynote.plugins:
             output.write("\\input{{{plugin}}}".format(plugin=plugin))
         # page number
-        slideoption = keynote.metadata['slidenumber']
-        h, v = map(str.strip, slideoption.split(" ", 1))
+        slideoption = keynote.metadata.get('slidenumber', "none none")
+        h, *v = map(str.strip, slideoption.split(" ", 1))
         if h != "none":
             cfg = "\\setbeamertemplate{{{vertical}}}[{position} page number]"
             if h not in ['center', 'left', 'right']:
