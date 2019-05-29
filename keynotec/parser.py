@@ -392,12 +392,13 @@ def parse_FORMATTED_STRING(data):
         '*': ("\\textbf{", False),
         '/': ('\\textit{', False),
         '_': ('\\underline{', False),
+        '|': ('\\texttt{', False),
     }
     value, data = parse_STRING(data)
     i = 0
     while i < len(value):
         if value[i] == "\\":
-            if value[i+1] in ['*', '/', '_', '\\']:
+            if value[i+1] in list(formatters.keys()) + ['\\']:
                 value = value[:i] + value[i+1:]
             else:
                 i += 1
