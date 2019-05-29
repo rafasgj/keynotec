@@ -2,6 +2,7 @@
 MANIFEST
 /*.egg-info/
 /dist/
+/build/
 
 # Python output files.
 /__pycache__/
