@@ -4,7 +4,9 @@ These are the changes made on every release of KeynoteC.
 
 ## 0.2.1 - 2019-05-31
 
+- Added support for automatic full screen presentations. 
 - Added support for monospaced text on formatted strings.
+- Cleaner interface (without call trace on errors).
 - Added CHANGELOG.
 - Bug fixing.
 
