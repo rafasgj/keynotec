@@ -5,6 +5,19 @@ import os.path
 import pkg_resources
 
 
+metabase = {
+    'theme': "",
+    'author': "",
+    'institute': "",
+    'date': "",
+    'title': "",
+    'subtitle': "",
+    'language': "english",
+    'slidenumber': "none none",
+    'fullscreen': "false",
+    }
+
+
 def _run_xelatex(texfile):
     from subprocess import Popen, PIPE, STDOUT
     import os
@@ -14,10 +27,35 @@ def _run_xelatex(texfile):
     cmd = ['xelatex', '-interaction', 'nonstopmode', texfile]
     proc = Popen(cmd, stdout=PIPE, stderr=STDOUT,
                  universal_newlines=True, env=env)
+    error = False
     for stream in proc.communicate():
         for line in stream.split('\n') if stream else []:
             if line and line[0] == '!':
+                error = True
                 print("\n{}".format(line))
+    return error
+
+
+def _generate_pagenumber(keynote, output):
+    """Configure slide number, if needed."""
+    # page number
+    slideoption = keynote.metadata.get('slidenumber', "none none")
+    h, *v = map(str.strip, slideoption.split(" ", 1))
+    v = " ".join(v)
+    if h != "none":
+        cfg = "\\setbeamertemplate{{{vertical}}}[{position} page number]"
+        if h not in ['center', 'left', 'right']:
+            raise Exception("Invalid slide number position: {}", h)
+        if v not in ['top', 'bottom']:
+            raise Exception("Invalid slide number position: {}", v)
+        vertical = "headline" if v == "top" else "footline"
+        output.write(cfg.format(vertical=vertical, position=h))
+
+
+def _generate_fullscreen(keynote, output):
+    """Configure keynote to open in full screen automatically."""
+    if keynote.metadata.get('fullscreen', 'false'):
+        output.write('\\hypersetup{pdfpagemode=FullScreen}')
 
 
 def run():
@@ -28,17 +66,6 @@ def run():
 
         print("usage: keynotec <filename>")
         sys.exit(1)
-
-    metabase = {
-        'theme': "",
-        'author': "",
-        'institute': "",
-        'date': "",
-        'title': "",
-        'subtitle': "",
-        'language': "english",
-        'slidenumber': "none none",
-        }
 
     filename = sys.argv[1]
     name, _ = os.path.splitext(filename)
@@ -62,17 +89,8 @@ def run():
             output.write(meta.read().format(**metabase))
         for plugin in keynote.plugins:
             output.write("\\input{{{plugin}}}".format(plugin=plugin))
-        # page number
-        slideoption = keynote.metadata.get('slidenumber', "none none")
-        h, *v = map(str.strip, slideoption.split(" ", 1))
-        if h != "none":
-            cfg = "\\setbeamertemplate{{{vertical}}}[{position} page number]"
-            if h not in ['center', 'left', 'right']:
-                raise Exception("Invalid slide number position: {}", h)
-            if v not in ['top', 'bottom']:
-                raise Exception("Invalid slide number position: {}", v)
-            vertical = "headline" if v == "top" else "footline"
-            output.write(cfg.format(vertical=vertical, position=h))
+        _generate_pagenumber(keynote, output)
+        _generate_fullscreen(keynote, output)
         # print slides
         output.write('\\begin{document}')
         for type, data in keynote.slides:
@@ -81,15 +99,17 @@ def run():
     print(" done.")
 
     print("Creating slides...", end='')
-    _run_xelatex(texfile)
+    error = _run_xelatex(texfile)
     print(" done.")
 
     print("Fixing references and effects...", end='')
-    _run_xelatex(texfile)
+    error |= _run_xelatex(texfile)
     print(" done.")
 
     print("Cleaning up...", end='')
-    for ext in ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb', 'tex']:
+    exts = ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb']
+    exts = exts + ["tex"] if not error else exts
+    for ext in exts:
         fname = '{}.{}'.format(name, ext)
         if os.access(fname, os.F_OK):
             os.unlink(fname)

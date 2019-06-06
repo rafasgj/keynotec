@@ -3,7 +3,7 @@
 """A recursive descendent parser for a keynote DSL."""
 
 from string import ascii_letters, digits, whitespace
-
+import keynotec
 
 letters = {c for c in ascii_letters}
 numbers = {d for d in digits}
@@ -61,8 +61,7 @@ def parse_metadata_key(data):
     'date', 'title', 'subtitle', 'language'.
     """
     content, line = data
-    valid_keys = ['theme', 'author', 'institute', 'date',
-                  'title', 'subtitle', 'language', 'slidenumber']
+    valid_keys = keynotec.metabase.keys()
     token, data = next_token(data)
     if token in valid_keys:
         return [token, data]
@@ -298,7 +297,9 @@ def parse_slide_itemimage(data):
     frame = """\\begin{{frame}}
                \\frametitle{{{title}}}{c}\n\\end{{frame}}\n"""
     columns = """\\begin{{columns}}{cols}\\end{{columns}}"""
-    column = """\\begin{{column}}{{{size}\paperwidth}}{content}\\end{{column}}"""
+    column = """
+        \\begin{{column}}{{{size}\\paperwidth}}{content}\\end{{column}}
+    """
     img = """
         \\begin{{center}}
         {{\\includegraphics[width=.4\\paperwidth, height=.75\\paperheight,
@@ -399,9 +400,13 @@ def parse_FORMATTED_STRING(data):
     while i < len(value):
         if value[i] == "\\":
             if value[i+1] in list(formatters.keys()) + ['\\']:
-                value = value[:i] + value[i+1:]
+                if value[i+1] == "_":
+                    i += 1
+                else:
+                    value = value[:i] + value[i+1:]
             else:
                 i += 1
+
         else:
             if value[i] in formatters:
                 key = value[i]
