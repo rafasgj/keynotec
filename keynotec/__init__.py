@@ -54,7 +54,7 @@ def _generate_pagenumber(keynote, output):
 
 def _generate_fullscreen(keynote, output):
     """Configure keynote to open in full screen automatically."""
-    if keynote.metadata.get('fullscreen', false):
+    if keynote.metadata.get('fullscreen', False):
         output.write('\\hypersetup{pdfpagemode=FullScreen}')
 
 
