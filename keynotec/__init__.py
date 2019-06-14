@@ -14,7 +14,7 @@ metabase = {
     'subtitle': "",
     'language': "english",
     'slidenumber': "none none",
-    'fullscreen': false,
+    'fullscreen': False,
     }
 
 
