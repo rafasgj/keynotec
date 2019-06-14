@@ -2,6 +2,10 @@
 
 These are the changes made on every release of KeynoteC.
 
+## 0.2.2 - 2019-06-14
+
+- Fixed 'fullscreen' option.
+
 ## 0.2.1 - 2019-05-31
 
 - Added support for automatic full screen presentations. 
