@@ -3,7 +3,7 @@
 import sys
 import os.path
 import pkg_resources
-
+import re
 
 metabase = {
     'theme': "",
@@ -32,7 +32,10 @@ def _run_xelatex(texfile):
         for line in stream.split('\n') if stream else []:
             if line and line[0] == '!':
                 error = True
-                print("\n{}".format(line))
+                print(line)
+            if line:
+                for slide in re.findall(re.compile('\[(\d+)\]'), line):
+                    print("Processing slide {}".format(slide))
     return error
 
 
@@ -73,14 +76,13 @@ def run():
     metadata_file = 'resources/metadata.inc'
     metafile = pkg_resources.resource_filename('keynotec', metadata_file)
 
-    print("Processing {}...".format(filename), end='')
+    print("Processing {}".format(filename))
     with open(filename, 'rt') as datafile:
         keynote = parse_keynote((datafile.read(), 1))
     if keynote is None:
         raise Exception("Failed to load keynote data.")
-    print(" done.")
 
-    print("Preparing document...", end='')
+    print("Preparing document.")
     with open(texfile, 'wt') as output:
         output.write("\\input{presentation}")
         with open(metafile, 'rt') as meta:
@@ -96,24 +98,20 @@ def run():
         for type, data in keynote.slides:
             output.write(data)
         output.write('\\end{document}')
-    print(" done.")
 
-    print("Creating slides...", end='')
+    print("Creating slides.")
     error = _run_xelatex(texfile)
-    print(" done.")
 
-    print("Fixing references and effects...", end='')
+    print("Fixing references and effects.")
     error |= _run_xelatex(texfile)
-    print(" done.")
 
-    print("Cleaning up...", end='')
+    print("Cleaning up.")
     exts = ['aux', 'log', 'nav', 'out', 'snm', 'toc', 'vrb']
     exts = exts + ["tex"] if not error else exts
     for ext in exts:
         fname = '{}.{}'.format(name, ext)
         if os.access(fname, os.F_OK):
             os.unlink(fname)
-    print("done.")
 
     if os.access('{}.pdf'.format(name), os.F_OK):
         print('{}.pdf'.format(name), "generated.")
