@@ -65,9 +65,17 @@ def run():
     """Run KeynoteC."""
     from keynotec.parser import parse_keynote
 
-    if len(sys.argv) < 2:
-
+    if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
+        themes = {
+            "apple_keynote_black": "Inspired by Apple Keynotes.",
+            "tchelinux": "A theme with Tux Gaudério.",
+            "chalkboard": "Reminder of your boring classes.",
+            "photographie": "A filmstrip background."
+        }
         print("usage: keynotec <filename>")
+        print("\tAvailable Themes:")
+        for k, v in themes.items():
+            print("\t\t{:>20}\t{}".format(k, v))
         sys.exit(1)
 
     filename = sys.argv[1]
