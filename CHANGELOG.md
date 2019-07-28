@@ -2,6 +2,16 @@
 
 These are the changes made on every release of KeynoteC.
 
+## 0.3 - 2019-08-__
+
+- Better compilation report.
+- Help lists available themes.
+- Use of '-' for list items (along with '\*').
+
+- Support for multi-column slides.
+- Support for three image slides.
+- Support for 'include-path'.
+
 ## 0.2.2 - 2019-06-14
 
 - Fixed 'fullscreen' option.

@@ -294,7 +294,7 @@ def parse_slide_itemimage(data):
         _, line = data
         error = "Expected image for items+image slide at line {}"
         raise Exception(error.format(line))
-    frame = """\\begin{{frame}}
+    frame = """\\begin{{frame}}[t]
                \\frametitle{{{title}}}{c}\n\\end{{frame}}\n"""
     columns = """\\begin{{columns}}{cols}\\end{{columns}}"""
     column = """
@@ -361,7 +361,7 @@ def parse_itemlist(data):
 
 
 def parse_singleitem(data):
-    """singleitem: level "*" STRING."""
+    """singleitem: level "*|-" STRING."""
     content, line = data
     level = 0
     while level < len(content) and content[level] == " ":
@@ -370,7 +370,7 @@ def parse_singleitem(data):
         return [None, (None, line)]
     if content[level] == '\n':
         return [None, (content[level+1:], line+1)]
-    if content[level] != '*':
+    if content[level] not in ('*', '-'):
         return [None, data]
     data = skip_space((content[level+1:], line))
     item, (content, line) = parse_FORMATTED_STRING(data)
