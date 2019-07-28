@@ -16,7 +16,7 @@ class Keynote:
         """Initialize an empty keynote."""
         self.metadata = {}
         self.slides = []
-        self.plugins = []
+        self.plugins = set([])
 
 
 keynote = Keynote()
@@ -234,7 +234,7 @@ def parse_slide_code(data):
     title, data = optional_title(data)
     data = skip_space(data)
     (language, code), data = parse_code_block(data)
-    keynote.plugins.append('listings/{}'.format(language))
+    keynote.plugins.add('listings/{}'.format(language))
     frame = """\\begin{{frame}}[fragile]
         \\frametitle{{{title}}}\n{content}\n\\end{{frame}}
     """
