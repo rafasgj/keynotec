@@ -64,7 +64,6 @@ def _generate_fullscreen(keynote, output):
 def run():
     """Run KeynoteC."""
     from keynotec.parser import parse_keynote
-
     if len(sys.argv) < 2 or sys.argv[1] in ('-h', '--help'):
         themes = {
             "apple_keynote_black": "Inspired by Apple Keynotes.",
@@ -73,10 +72,10 @@ def run():
             "photographie": "A filmstrip background."
         }
         print("usage: keynotec <filename>")
-        print("\tAvailable Themes:")
+        print("\nAvailable Themes:")
         for k, v in themes.items():
-            print("\t\t{:>20}\t{}".format(k, v))
-        sys.exit(1)
+            print("\t{:>20}\t{}".format(k, v))
+        sys.exit(1 if len(sys.argv) < 2 else 0)
 
     filename = sys.argv[1]
     name, _ = os.path.splitext(filename)
