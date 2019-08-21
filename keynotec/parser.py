@@ -298,15 +298,15 @@ def parse_slide_itemimage(data):
                \\frametitle{{{title}}}{c}\n\\end{{frame}}\n"""
     columns = """\\begin{{columns}}{cols}\\end{{columns}}"""
     column = """
-        \\begin{{column}}{{{size}\\paperwidth}}{content}\\end{{column}}
+        \\begin{{column}}{{{size}\\textwidth}}{content}\\end{{column}}
     """
     img = """
         \\begin{{center}}
-        {{\\includegraphics[width=.4\\paperwidth, height=.75\\paperheight,
+        {{\\includegraphics[width=\\textwidth, height=.5\\paperheight,
         keepaspectratio]{{{i}}}}}
         \\end{{center}}
     """
-    cimg = column.format(size=0.4, content=img.format(i=image))
+    cimg = column.format(size=0.45, content=img.format(i=image))
     citems = column.format(size=0.55, content=process_items(items))
     coltext = cimg + citems if left else citems + cimg
     result = frame.format(title=title, c=columns.format(cols=coltext))

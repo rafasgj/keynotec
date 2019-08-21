@@ -37,3 +37,21 @@
 
 % set frame title posision.
 \setbeamertemplate{frametitle}{\begin{center}\insertframetitle\end{center}}
+
+% set item spacing.
+\usepackage{xpatch}
+
+\xpatchcmd{\itemize}
+  {\def\makelabel}
+  {\ifnum\@itemdepth=1\relax
+     \setlength\itemsep{20ex}% separation for first level
+   \else
+     \ifnum\@itemdepth=2\relax
+       \setlength\itemsep{2ex}% separation for second level
+     \else
+       \ifnum\@itemdepth>2\relax
+         \setlength\itemsep{0.5ex}% separation for third level
+   \fi\fi\fi\def\makelabel
+  }
+ {}
+ {}
