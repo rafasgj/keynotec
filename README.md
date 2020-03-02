@@ -49,7 +49,7 @@ if, like me, you bought just barely enough disk space, and cannot upgrade it
 since it is soldered on the logic board, you should NOT use a full fledged
 TexLive distribution. Instead you should use
 [BasicTex](https://www.tug.org/mactex/morepackages.html), that will eat just
-a hundred megs of your precious disk, and then use its package manager to
+a few hundred megs of your precious disk, and then use its package manager to
 install the missing packages (with sudo):
 
 ```
